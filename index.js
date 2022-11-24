@@ -8,6 +8,22 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
+// mongodb
+const uri = `${process.env.MONGODB_URL}`;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
+
+async function run() {
+  try {
+    const productCollection = client.db("best-seller").collection("products");
+  } finally {
+  }
+}
+run();
+
 app.get("/", (req, res) => {
   res.send("Server is running");
 });
