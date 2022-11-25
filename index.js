@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
@@ -16,9 +17,26 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+// verify jwt token
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "UnAuthorized Access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   try {
     const productCollection = client.db("best-seller").collection("products");
+    const userCollection = client.db("best-seller").collection("user");
 
     // get products
     app.get("/products", async (req, res) => {
@@ -27,6 +45,7 @@ async function run() {
       res.send(products);
     });
 
+    // get product by id
     app.get("/product/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -40,6 +59,13 @@ async function run() {
       const query = { brand: category };
       const products = await productCollection.find(query).toArray();
       res.send(products);
+    });
+
+    // login a new user
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET);
+      res.send({ token });
     });
   } finally {
   }
