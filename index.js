@@ -129,12 +129,24 @@ async function run() {
       res.send(result);
     });
 
-    // check email
+    // check admin
     app.get("/admin", verifyJWT, async (req, res) => {
       const email = req.decoded.email;
       const query = { email: email };
       const user = await userCollection.findOne(query);
       if (user.role === "Admin") {
+        res.send(user);
+      } else {
+        res.send({ isAdmin: false });
+      }
+    });
+
+    // check seller
+    app.get("/seller", verifyJWT, async (req, res) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      if (user.role === "Seller") {
         res.send(user);
       } else {
         res.send({ isAdmin: false });
