@@ -41,7 +41,7 @@ async function run() {
 
     // get products
     app.get("/products", async (req, res) => {
-      const query = {};
+      const query = { status: "available" };
       const products = await productCollection.find(query).toArray();
       res.send(products);
     });
@@ -54,10 +54,28 @@ async function run() {
       res.send(product);
     });
 
+    // update product by id
+    app.put("/update-product/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const update = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: update,
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      console.log(result);
+      res.send(result);
+    });
+
     // get category products
     app.get("/category/:name", async (req, res) => {
       const category = req.params.name;
-      const query = { brand: category };
+      const query = { brand: category, status: "available" };
       const products = await productCollection.find(query).toArray();
       res.send(products);
     });
@@ -70,7 +88,7 @@ async function run() {
     });
 
     // add order
-    app.post("/order", async (req, res) => {
+    app.post("/order", verifyJWT, async (req, res) => {
       const body = req.body;
       const result = await orderCollection.insertOne(body);
       res.send(result);
