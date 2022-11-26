@@ -55,7 +55,7 @@ async function run() {
     });
 
     // update product by id
-    app.put("/update-product/:id", verifyJWT, async (req, res) => {
+    app.put("/update-product/:id", async (req, res) => {
       const id = req.params.id;
       const update = req.body;
       const filter = { _id: ObjectId(id) };
@@ -87,8 +87,16 @@ async function run() {
       res.send(product);
     });
 
+    // get order by email
+    app.get("/order", verifyJWT, async (req, res) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const order = await orderCollection.find(query).toArray();
+      res.send(order);
+    });
+
     // add order
-    app.post("/order", verifyJWT, async (req, res) => {
+    app.post("/order", async (req, res) => {
       const body = req.body;
       const result = await orderCollection.insertOne(body);
       res.send(result);
@@ -108,7 +116,7 @@ async function run() {
       res.send({ result, token });
     });
 
-    // set buyer
+    // set user type
     app.put("/user/type/:email", async (req, res) => {
       const email = req.params.email;
       const body = req.body;
