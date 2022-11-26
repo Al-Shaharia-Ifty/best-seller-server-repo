@@ -128,6 +128,18 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc, options);
       res.send(result);
     });
+
+    // check email
+    app.get("/admin", verifyJWT, async (req, res) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      if (user.role === "Admin") {
+        res.send(user);
+      } else {
+        res.send({ isAdmin: false });
+      }
+    });
   } finally {
   }
 }
