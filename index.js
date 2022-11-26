@@ -37,6 +37,7 @@ async function run() {
   try {
     const productCollection = client.db("best-seller").collection("products");
     const userCollection = client.db("best-seller").collection("user");
+    const orderCollection = client.db("best-seller").collection("order");
 
     // get products
     app.get("/products", async (req, res) => {
@@ -59,6 +60,13 @@ async function run() {
       const query = { brand: category };
       const products = await productCollection.find(query).toArray();
       res.send(products);
+    });
+
+    // get advertised products
+    app.get("/advertised", async (req, res) => {
+      const query = { advertised: "true" };
+      const product = await productCollection.find(query).toArray();
+      res.send(product);
     });
 
     // login a new user
