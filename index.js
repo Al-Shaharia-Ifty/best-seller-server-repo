@@ -69,6 +69,13 @@ async function run() {
       res.send(product);
     });
 
+    // add order
+    app.post("/order", async (req, res) => {
+      const body = req.body;
+      const result = await orderCollection.insertOne(body);
+      res.send(result);
+    });
+
     // login a new user
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
