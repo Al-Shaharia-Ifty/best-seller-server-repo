@@ -39,6 +39,18 @@ async function run() {
     const userCollection = client.db("best-seller").collection("user");
     const orderCollection = client.db("best-seller").collection("order");
 
+    const verifySeller = async (req, res, next) => {
+      const email = req.decoded.email;
+      const user = await userCollection.findOne({ email: email });
+      if (user.role === "Admin") {
+        next();
+      } else if (user.role === "Seller") {
+        next();
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+    };
+
     // get products
     app.get("/products", async (req, res) => {
       const query = { status: "available" };
@@ -82,8 +94,24 @@ async function run() {
 
     // get advertised products
     app.get("/advertised", async (req, res) => {
-      const query = { advertised: "true" };
+      const query = { advertised: true };
       const product = await productCollection.find(query).toArray();
+      res.send(product);
+    });
+
+    // add product to advertised
+    app.put("/advertised/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: { advertised: true },
+      };
+      const product = await productCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
       res.send(product);
     });
 
@@ -100,6 +128,13 @@ async function run() {
       const body = req.body;
       const result = await orderCollection.insertOne(body);
       res.send(result);
+    });
+
+    // get my products
+    app.get("/my-product", verifyJWT, verifySeller, async (req, res) => {
+      const email = req.decoded.email;
+      const product = await productCollection.find({ email: email }).toArray();
+      res.send(product);
     });
 
     // login a new user
