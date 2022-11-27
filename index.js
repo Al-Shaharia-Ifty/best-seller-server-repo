@@ -80,8 +80,23 @@ async function run() {
         updateDoc,
         options
       );
-      console.log(result);
       res.send(result);
+    });
+
+    // update product available to sold
+    app.put("/sold/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: { status: "sold", advertised: false },
+      };
+      const product = await productCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(product);
     });
 
     // get category products
