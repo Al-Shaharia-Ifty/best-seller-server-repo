@@ -243,6 +243,7 @@ async function run() {
         res.send();
       }
     });
+
     // check seller
     app.get("/buyer", verifyJWT, async (req, res) => {
       const email = req.decoded.email;
@@ -253,6 +254,31 @@ async function run() {
       } else {
         res.send();
       }
+    });
+
+    // get all buyer
+    app.get("/all-buyers", async (req, res) => {
+      const query = { role: "Buyer" };
+      const user = await userCollection.find(query).toArray();
+      res.send(user);
+    });
+
+    // get all seller
+    app.get("/all-sellers", verifyJWT, async (req, res) => {
+      const query = { role: "Seller" };
+      const user = await userCollection.find(query).toArray();
+      res.send(user);
+    });
+
+    app.put("/verified/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: { verified: "true" },
+      };
+      const user = await userCollection.updateOne(filter, updateDoc, options);
+      res.send(user);
     });
   } finally {
   }
