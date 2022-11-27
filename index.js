@@ -243,6 +243,17 @@ async function run() {
         res.send();
       }
     });
+    // check seller
+    app.get("/buyer", verifyJWT, async (req, res) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      if (user.role === "Buyer") {
+        res.send(user);
+      } else {
+        res.send();
+      }
+    });
   } finally {
   }
 }
