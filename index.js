@@ -51,6 +51,16 @@ async function run() {
       }
     };
 
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const user = await userCollection.findOne({ email: email });
+      if (user.role === "Admin") {
+        next();
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+    };
+
     // get products
     app.get("/products", async (req, res) => {
       const query = { status: "available" };
@@ -218,7 +228,7 @@ async function run() {
       if (user.role === "Admin") {
         res.send(user);
       } else {
-        res.send({ isAdmin: false });
+        res.send();
       }
     });
 
@@ -230,7 +240,7 @@ async function run() {
       if (user.role === "Seller") {
         res.send(user);
       } else {
-        res.send({ isAdmin: false });
+        res.send();
       }
     });
   } finally {
