@@ -295,6 +295,13 @@ async function run() {
       res.send(product);
     });
 
+    // get all report product
+    app.get("/all-report", verifyJWT, verifyAdmin, async (req, res) => {
+      const query = { report: true };
+      const product = await productCollection.find(query).toArray();
+      res.send(product);
+    });
+
     // verified user by id
     app.put("/verified/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
