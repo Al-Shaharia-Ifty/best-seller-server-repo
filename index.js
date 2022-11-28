@@ -5,6 +5,7 @@ const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 app.use(cors());
 app.use(express.json());
@@ -178,6 +179,39 @@ async function run() {
       res.send(result);
     });
 
+    //
+    app.put("/order/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const name = { name: payment.productName };
+      const updateDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+      const updatePro = {
+        $set: {
+          status: "sold",
+          advertised: false,
+        },
+      };
+      const updateOrder = await orderCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      const product = await productCollection.updateOne(
+        name,
+        updatePro,
+        options
+      );
+      console.log(name, updatePro, options);
+      res.send(product);
+    });
+
     // get my products
     app.get("/my-product", verifyJWT, verifySeller, async (req, res) => {
       const email = req.decoded.email;
@@ -300,6 +334,27 @@ async function run() {
       const query = { report: true };
       const product = await productCollection.find(query).toArray();
       res.send(product);
+    });
+
+    // get booking product
+    app.get("/booking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const booking = await orderCollection.find(query).toArray();
+      res.send(booking);
+    });
+
+    // create payment intent
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const service = req.body;
+      const price = service.resalePrice;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
     });
 
     // verified user by id
