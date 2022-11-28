@@ -270,6 +270,32 @@ async function run() {
       res.send(user);
     });
 
+    // delete user by id
+    app.delete("/delete-user/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const user = await userCollection.deleteOne(query);
+      res.send(user);
+    });
+
+    // product report by id
+    app.put("/report/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: { report: true },
+      };
+      const product = await productCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      console.log(product);
+      res.send(product);
+    });
+
+    // verified user by id
     app.put("/verified/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
